@@ -1,0 +1,28 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <VersionPrefix>0.1.0</VersionPrefix>
+    <Description>A Seq app that pushes events to Prometheus Pushgateway</Description>
+    <Authors>kmdlogic</Authors>
+    <PackageTags>seq-app</PackageTags>
+    <PackageIconUrl>https://console.kmdlogic.io/favicon-32x32.png</PackageIconUrl>
+    <PackageProjectUrl>https://github.com/kmdlogic/seq-app-prometheus-pushgateway</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/kmdlogic/seq-app-prometheus-pushgateway</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <TreatWarningsAsErrors>True</TreatWarningsAsErrors>
+    <TreatSpecificWarningsAsErrors />
+    <PackageLicenseFile>LICENSE</PackageLicenseFile>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Seq.Apps" Version="5.1.0" />
+    <PackageReference Include="Prometheus.Client" Version="3.0.1" />
+    <PackageReference Include="Prometheus.Client.MetricPusher" Version="1.0.1" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="../../LICENSE" Pack="true" PackagePath=""/>
+    <None Include="./obj/publish/**/*" Exclude="./obj/publish/Seq.App.Prometheus.Pushgateway.dll;./obj/publish/Seq.Apps.dll;./obj/publish/Serilog.dll" Pack="true" PackagePath="lib/$(TargetFramework)" />
+  </ItemGroup>
+  
+</Project>
