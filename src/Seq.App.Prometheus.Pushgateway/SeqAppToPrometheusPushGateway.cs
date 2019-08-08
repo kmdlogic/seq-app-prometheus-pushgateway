@@ -10,7 +10,7 @@ using System.Text;
 
 namespace Seq.App.Prometheus.Pushgateway
 {
-    [SeqApp("Seq.App.Prometheus",
+    [SeqApp("Seq.App.Prometheus.Pushgateway",
        Description = "Filtered events are sent to the Prometheus Pushgateway.")]
     class SeqAppToPrometheusPushGateway : SeqApp, ISubscribeTo<LogEventData>
     {
