@@ -24,30 +24,43 @@ namespace Seq.App.Prometheus.Pushgateway
             HelpText = "Name of the counter with which this will be identified in the Pushgateway Metrics.")]
         public string CounterName { get; set; }
 
+        [SeqAppSetting(
+            DisplayName = "Additional Property Names",
+            IsOptional = true,
+            HelpText = "The names of additional event properties to include in the PagerDuty incident. One per line.",
+            InputType = SettingInputType.LongText)]
+        public string ApplicationNameKeyList { get; set; }
+
         public static IMetricPushServer server;
         public readonly string instanceName = "default";
 
         public void On(Event<LogEventData> evt)
         {
             server = new MetricPushServer(new MetricPusher(PushgatewayUrl, CounterName, instanceName));
-            var pushgatewayCounterData = FormatTemplate(evt);
+            var pushgatewayCounterData = FormatTemplate(evt, ApplicationNameKeyList);
 
             server.Start();
             var counter = Metrics.CreateCounter(CounterName, "To keep the count of no of times a particular error coming in a module.", new[] { "ApplicationName", "Message" });
             counter.Labels(pushgatewayCounterData.ResourceName, pushgatewayCounterData.RenderedMessage).Inc();
         }
 
-        public static PushgatewayCounterData FormatTemplate(Event<LogEventData> evt)
+        public static PushgatewayCounterData FormatTemplate(Event<LogEventData> evt, string applicationNameKeyList)
         {
             var properties = (IDictionary<string, object>)ToDynamic(evt.Data.Properties ?? new Dictionary<string, object>());
 
             PushgatewayCounterData data = new PushgatewayCounterData();
             data.RenderedMessage = evt.Data.RenderedMessage ?? evt.Data.MessageTemplate;
-            foreach (var property in properties)
+
+            foreach (var propertyName in applicationNameKeyList)
             {
-                if (property.Key == "Application" || property.Key == "App")
+                var name = (propertyName).ToString().Trim();
+                foreach (var property in properties)
                 {
-                    data.ResourceName = property.Value.ToString();
+                    if (property.Key == name)
+                    {
+                        data.ResourceName = property.Value.ToString();
+                        break;
+                    }
                 }
             }
             return data;
