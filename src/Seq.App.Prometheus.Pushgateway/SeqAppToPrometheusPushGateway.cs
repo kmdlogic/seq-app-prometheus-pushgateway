@@ -25,9 +25,9 @@ namespace Seq.App.Prometheus.Pushgateway
         public string CounterName { get; set; }
 
         [SeqAppSetting(
-            DisplayName = "Additional Property Names",
+            DisplayName = "ApplicationNameKeyList",
             IsOptional = true,
-            HelpText = "The names of additional event properties to include in the PagerDuty incident. One per line.",
+            HelpText = "The names of additional event properties.",
             InputType = SettingInputType.LongText)]
         public string ApplicationNameKeyList { get; set; }
 
