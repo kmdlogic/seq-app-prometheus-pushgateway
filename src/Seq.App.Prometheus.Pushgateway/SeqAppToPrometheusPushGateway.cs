@@ -31,16 +31,21 @@ namespace Seq.App.Prometheus.Pushgateway
             InputType = SettingInputType.LongText)]
         public string ApplicationNameKeySet { get; set; }
 
-        public static IMetricPushServer server;
+        public IMetricPushServer server;
         public readonly string instanceName = "default";
 
+        protected override void OnAttached()
+        {
+            base.OnAttached();
+            server = new MetricPushServer(new MetricPusher(PushgatewayUrl, CounterName, instanceName));
+            server.Start();
+        }
+   
         public void On(Event<LogEventData> evt)
         {
-            server = new MetricPushServer(new MetricPusher(PushgatewayUrl, CounterName, instanceName));
             var additionalPropertiesList = SplitOnNewLine(this.ApplicationNameKeySet).ToList();
             var pushgatewayCounterData = FormatTemplate(evt, additionalPropertiesList);
 
-            server.Start();
             var counter = Metrics.CreateCounter(CounterName, "To keep the count of no of times a particular error coming in a module.", new[] { "ApplicationName", "Message" });
             counter.Labels(pushgatewayCounterData.ResourceName, pushgatewayCounterData.RenderedMessage).Inc();
         }
