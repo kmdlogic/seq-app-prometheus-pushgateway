@@ -5,6 +5,7 @@ using Seq.Apps.LogEvents;
 using System;
 using System.Collections.Generic;
 using System.Dynamic;
+using System.IO;
 using System.Linq;
 using System.Text;
 
@@ -26,10 +27,9 @@ namespace Seq.App.Prometheus.Pushgateway
 
         [SeqAppSetting(
             DisplayName = "ApplicationNameKeyList",
-            IsOptional = true,
             HelpText = "The names of additional event properties.",
             InputType = SettingInputType.LongText)]
-        public string ApplicationNameKeyList { get; set; }
+        public string ApplicationNameKeySet { get; set; }
 
         public static IMetricPushServer server;
         public readonly string instanceName = "default";
@@ -37,14 +37,15 @@ namespace Seq.App.Prometheus.Pushgateway
         public void On(Event<LogEventData> evt)
         {
             server = new MetricPushServer(new MetricPusher(PushgatewayUrl, CounterName, instanceName));
-            var pushgatewayCounterData = FormatTemplate(evt, ApplicationNameKeyList);
+            var additionalPropertiesList = SplitOnNewLine(this.ApplicationNameKeySet).ToList();
+            var pushgatewayCounterData = FormatTemplate(evt, additionalPropertiesList);
 
             server.Start();
             var counter = Metrics.CreateCounter(CounterName, "To keep the count of no of times a particular error coming in a module.", new[] { "ApplicationName", "Message" });
             counter.Labels(pushgatewayCounterData.ResourceName, pushgatewayCounterData.RenderedMessage).Inc();
         }
 
-        public static PushgatewayCounterData FormatTemplate(Event<LogEventData> evt, string applicationNameKeyList)
+        public static PushgatewayCounterData FormatTemplate(Event<LogEventData> evt, List<string> applicationNameKeyList)
         {
             var properties = (IDictionary<string, object>)ToDynamic(evt.Data.Properties ?? new Dictionary<string, object>());
 
@@ -84,6 +85,19 @@ namespace Seq.App.Prometheus.Pushgateway
             }
 
             return o;
+        }
+
+        private static IEnumerable<string> SplitOnNewLine(string addtionalProperties)
+        {
+            if (addtionalProperties == null)
+            {
+                yield break;
+            }
+
+            using (var reader = new StringReader(addtionalProperties))
+            {
+                yield return reader.ReadLine();
+            }
         }
     }
 }
