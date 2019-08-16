@@ -21,9 +21,9 @@ namespace Seq.App.Prometheus.Pushgateway
         public string PushgatewayUrl { get; set; }
 
         [SeqAppSetting(
-            DisplayName = "Pushgateway Counter Name",
-            HelpText = "Name of the counter with which this will be identified in the Pushgateway Metrics.")]
-        public string CounterName { get; set; }
+             DisplayName = "Pushgateway Gauge Name",
+             HelpText = "Name of the Gauge with which this will be identified in the Pushgateway Metrics.")]
+        public string GaugeName { get; set; }
 
         [SeqAppSetting(
             DisplayName = "ApplicationNameKeyList",
@@ -33,21 +33,26 @@ namespace Seq.App.Prometheus.Pushgateway
 
         public IMetricPushServer server;
         public readonly string instanceName = "default";
+        public ICollectorRegistry registry;
 
         protected override void OnAttached()
         {
             base.OnAttached();
-            server = new MetricPushServer(new MetricPusher(PushgatewayUrl, CounterName, instanceName));
+            registry = new CollectorRegistry();
+            var customPusher = new MetricPusher(registry, PushgatewayUrl, GaugeName, new Uri(PushgatewayUrl).Host, null, null);
+            server = new MetricPushServer(customPusher);
             server.Start();
         }
-   
+
         public void On(Event<LogEventData> evt)
         {
             var additionalPropertiesList = SplitOnNewLine(this.ApplicationNameKeySet).ToList();
             var pushgatewayCounterData = FormatTemplate(evt, additionalPropertiesList);
 
-            var counter = Metrics.CreateCounter(CounterName, "To keep the count of no of times a particular error coming in a module.", new[] { "ApplicationName", "Message" });
-            counter.Labels(pushgatewayCounterData.ResourceName, pushgatewayCounterData.RenderedMessage).Inc();
+
+            var customGauge = Metrics.WithCustomRegistry(registry).CreateGauge(GaugeName, "To track the seq errors", new[] { "ApplicationName" });
+            var gaugeValue = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
+            customGauge.Labels(pushgatewayCounterData.ResourceName).Set(gaugeValue);
         }
 
         public static PushgatewayCounterData FormatTemplate(Event<LogEventData> evt, List<string> applicationNameKeyList)
@@ -55,7 +60,6 @@ namespace Seq.App.Prometheus.Pushgateway
             var properties = (IDictionary<string, object>)ToDynamic(evt.Data.Properties ?? new Dictionary<string, object>());
 
             PushgatewayCounterData data = new PushgatewayCounterData();
-            data.RenderedMessage = evt.Data.RenderedMessage ?? evt.Data.MessageTemplate;
 
             foreach (var propertyName in applicationNameKeyList)
             {
