@@ -15,7 +15,7 @@ namespace Seq.App.Prometheus.Pushgateway
 {
     [SeqApp("Seq.App.Prometheus.Pushgateway",
        Description = "Filtered events are sent to the Prometheus Pushgateway.")]
-    class SeqAppToPrometheusPushGateway : SeqApp, ISubscribeTo<LogEventData>
+    public class SeqAppToPrometheusPushGateway : SeqApp, ISubscribeTo<LogEventData>
     {
         [SeqAppSetting(
            DisplayName = "Pushgateway URL",
