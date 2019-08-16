@@ -4,6 +4,8 @@ using Seq.Apps;
 using Seq.Apps.LogEvents;
 using System;
 using System.Collections.Generic;
+using Prometheus.Client.Collectors;
+using Prometheus.Client.Collectors.Abstractions;
 using System.Dynamic;
 using System.IO;
 using System.Linq;
