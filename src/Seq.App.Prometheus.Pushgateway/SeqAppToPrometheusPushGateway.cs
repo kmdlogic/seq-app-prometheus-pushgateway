@@ -32,7 +32,6 @@ namespace Seq.App.Prometheus.Pushgateway
         public string ApplicationNameKeySet { get; set; }
 
         public IMetricPushServer server;
-        public readonly string instanceName = "default";
         public ICollectorRegistry registry;
 
         protected override void OnAttached()
