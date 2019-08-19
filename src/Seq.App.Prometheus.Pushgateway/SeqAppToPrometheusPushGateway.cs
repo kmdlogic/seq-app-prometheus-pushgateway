@@ -49,7 +49,7 @@ namespace Seq.App.Prometheus.Pushgateway
         public void On(Event<LogEventData> evt)
         {
             var applicationNameKeySet = SplitOnNewLine(this.ApplicationNameKeySet).ToList();
-            var pushgatewayCounterData = FormatTemplate(evt, applicationNameKeySet);
+            var pushgatewayCounterData = ApplicationNameKeyValueMapping(evt, applicationNameKeySet);
 
 
             var customGauge = Metrics.WithCustomRegistry(registry).CreateGauge(GaugeName, "To track the Seq events based on the applied signal", new[] { "ApplicationName" });
@@ -57,7 +57,7 @@ namespace Seq.App.Prometheus.Pushgateway
             customGauge.Labels(pushgatewayCounterData.ResourceName).Set(gaugeValue);
         }
 
-        public static PushgatewayCounterData FormatTemplate(Event<LogEventData> evt, List<string> applicationNameKeyList)
+        public static PushgatewayCounterData ApplicationNameKeyValueMapping(Event<LogEventData> evt, List<string> applicationNameKeyList)
         {
             var properties = (IDictionary<string, object>)ToDynamic(evt.Data.Properties ?? new Dictionary<string, object>());
 
