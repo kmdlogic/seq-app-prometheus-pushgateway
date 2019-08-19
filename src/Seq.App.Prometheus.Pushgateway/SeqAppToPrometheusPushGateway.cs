@@ -52,9 +52,9 @@ namespace Seq.App.Prometheus.Pushgateway
             var pushgatewayCounterData = FormatTemplate(evt, additionalPropertiesList);
 
 
-            var customGauge = Metrics.WithCustomRegistry(registry).CreateGauge(GaugeName, "To track the seq errors", new[] { "ApplicationName" });
+            var customGauge = Metrics.WithCustomRegistry(registry).CreateGauge(GaugeName, "To track the seq errors", true, new[] { "ApplicationName" });
             var gaugeValue = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
-            customGauge.Labels(pushgatewayCounterData.ResourceName).Set(gaugeValue);
+            customGauge.Labels(pushgatewayCounterData.ResourceName).Set(gaugeValue, DateTime.UtcNow);
         }
 
         public static PushgatewayCounterData FormatTemplate(Event<LogEventData> evt, List<string> applicationNameKeyList)
