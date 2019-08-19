@@ -29,8 +29,7 @@ namespace Seq.App.Prometheus.Pushgateway
 
         [SeqAppSetting(
             DisplayName = "Pushgateway Gauge Label Key",
-            HelpText = "Pushgateway Gauge Label Key against which values from GaugeLabelValues will be set",
-            InputType = SettingInputType.LongText)]
+            HelpText = "Pushgateway Gauge Label Key against which values from GaugeLabelValues will be set")]
         public string GaugeLabelKey { get; set; }
 
         [SeqAppSetting(
