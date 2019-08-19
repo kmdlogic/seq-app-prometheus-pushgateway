@@ -62,6 +62,7 @@ namespace Seq.App.Prometheus.Pushgateway
             var properties = (IDictionary<string, object>)ToDynamic(evt.Data.Properties ?? new Dictionary<string, object>());
 
             PushgatewayCounterData data = new PushgatewayCounterData();
+            data.ResourceName = "ResourceNotFound";
 
             foreach (var propertyName in applicationNameKeyList)
             {
