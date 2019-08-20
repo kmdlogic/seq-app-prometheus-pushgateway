@@ -14,7 +14,7 @@ using System.Text;
 namespace Seq.App.Prometheus.Pushgateway
 {
     [SeqApp("Seq.App.Prometheus.Pushgateway",
-       Description = "Filtered events are sent to the Prometheus Pushgateway.")]
+       Description = "\"GaugeLabelKey\" data from filtered events are sent through gauge to the Pushgateway.")]
     public class SeqAppToPrometheusPushGateway : SeqApp, ISubscribeTo<LogEventData>
     {
         [SeqAppSetting(
@@ -39,7 +39,6 @@ namespace Seq.App.Prometheus.Pushgateway
         public string GaugeLabelValues { get; set; }
 
         public IMetricPushServer server;
-        public readonly string instanceName = "default";
         public ICollectorRegistry registry;
 
         protected override void OnAttached()
@@ -56,10 +55,10 @@ namespace Seq.App.Prometheus.Pushgateway
             var gaugeLabelValuesList = SplitOnNewLine(this.GaugeLabelValues).ToList();
             var pushgatewayCounterData = ApplicationNameKeyValueMapping(evt, gaugeLabelValuesList);
 
-
-            var customGauge = Metrics.WithCustomRegistry(registry).CreateGauge(GaugeName, "To track the Seq events based on the applied signal", new[] { GaugeLabelKey });
+            var customGauge = Metrics.WithCustomRegistry(registry).CreateGauge(GaugeName, "To track the Seq events based on the applied signal", new[] { GaugeLabelKey, "EventTimestamp" });
             var gaugeValue = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
-            customGauge.Labels(pushgatewayCounterData.ResourceName).Set(gaugeValue);
+         
+            customGauge.Labels(pushgatewayCounterData.ResourceName, evt.TimestampUtc.ToString()).Set(gaugeValue);
         }
 
         public static PushgatewayCounterData ApplicationNameKeyValueMapping(Event<LogEventData> evt, List<string> gaugeLabelValuesList)
