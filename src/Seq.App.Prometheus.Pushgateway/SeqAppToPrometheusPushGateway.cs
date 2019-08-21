@@ -53,19 +53,19 @@ namespace Seq.App.Prometheus.Pushgateway
         public void On(Event<LogEventData> evt)
         {
             var gaugeLabelValuesList = SplitOnNewLine(this.GaugeLabelValues).ToList();
-            var pushgatewayCounterData = ApplicationNameKeyValueMapping(evt, gaugeLabelValuesList);
+            var pushgatewayGaugeData = ApplicationNameKeyValueMapping(evt, gaugeLabelValuesList);
 
             var customGauge = Metrics.WithCustomRegistry(registry).CreateGauge(GaugeName, "To track the Seq events based on the applied signal", new[] { GaugeLabelKey, "EventTimestamp" });
             var gaugeValue = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
          
-            customGauge.Labels(pushgatewayCounterData.ResourceName, evt.TimestampUtc.ToString()).Set(gaugeValue);
+            customGauge.Labels(pushgatewayGaugeData.ResourceName, evt.TimestampUtc.ToString()).Set(gaugeValue);
         }
 
-        public static PushgatewayCounterData ApplicationNameKeyValueMapping(Event<LogEventData> evt, List<string> gaugeLabelValuesList)
+        public static PushgatewayGaugeData ApplicationNameKeyValueMapping(Event<LogEventData> evt, List<string> gaugeLabelValuesList)
         {
             var properties = (IDictionary<string, object>)ToDynamic(evt.Data.Properties ?? new Dictionary<string, object>());
 
-            PushgatewayCounterData data = new PushgatewayCounterData();
+            PushgatewayGaugeData data = new PushgatewayGaugeData();
             data.ResourceName = "ResourceNotFound";
 
             foreach (var propertyName in gaugeLabelValuesList)
