@@ -39,7 +39,6 @@ namespace Seq.App.Prometheus.Pushgateway
         public string GaugeLabelValues { get; set; }
 
         public IMetricPushServer server;
-        public ICollectorRegistry registry;
         public readonly string instanceName = "default";
 
         protected override void OnAttached()
@@ -53,8 +52,9 @@ namespace Seq.App.Prometheus.Pushgateway
         {
             var gaugeLabelValuesList = SplitOnNewLine(this.GaugeLabelValues).ToList();
             var pushgatewayCounterData = ApplicationNameKeyValueMapping(evt, gaugeLabelValuesList);
-            var counter = Metrics.CreateCounter(CounterName, "To keep the count of no of times a particular error coming in a module.", new[] { "ApplicationName", "Message" });
-            counter.Labels(pushgatewayCounterData.ResourceName).Inc();
+            var gaugeValue = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
+            var counter = Metrics.CreateCounter(CounterName, "To keep the count of no of times a particular error coming in a module.", new[] { GaugeLabelKey, "EventTimestamp" });
+            counter.Labels(pushgatewayCounterData.ResourceName, evt.TimestampUtc.ToString()); 
         }
 
         public static PushgatewayGaugeData ApplicationNameKeyValueMapping(Event<LogEventData> evt, List<string> gaugeLabelValuesList)
