@@ -23,9 +23,9 @@ namespace Seq.App.Prometheus.Pushgateway
         public string PushgatewayUrl { get; set; }
 
         [SeqAppSetting(
-             DisplayName = "Pushgateway Gauge Name",
-             HelpText = "Name of the Gauge with which this will be identified in the Pushgateway Metrics.")]
-        public string GaugeName { get; set; }
+            DisplayName = "Pushgateway Counter Name",
+            HelpText = "Name of the counter with which this will be identified in the Pushgateway Metrics.")]
+        public string CounterName { get; set; }
 
         [SeqAppSetting(
             DisplayName = "Pushgateway Gauge Label Key",
@@ -45,7 +45,7 @@ namespace Seq.App.Prometheus.Pushgateway
         {
             base.OnAttached();
             registry = new CollectorRegistry();
-            var customPusher = new MetricPusher(registry, PushgatewayUrl, GaugeName, new Uri(PushgatewayUrl).Host, null, null);
+            var customPusher = new MetricPusher(registry, PushgatewayUrl, CounterName, new Uri(PushgatewayUrl).Host, null, null);
             server = new MetricPushServer(customPusher);
             server.Start();
         }
@@ -53,12 +53,9 @@ namespace Seq.App.Prometheus.Pushgateway
         public void On(Event<LogEventData> evt)
         {
             var gaugeLabelValuesList = SplitOnNewLine(this.GaugeLabelValues).ToList();
-            var pushgatewayGaugeData = ApplicationNameKeyValueMapping(evt, gaugeLabelValuesList);
-
-            var customGauge = Metrics.WithCustomRegistry(registry).CreateGauge(GaugeName, "To track the Seq events based on the applied signal", new[] { GaugeLabelKey, "EventTimestamp" });
-            var gaugeValue = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
-         
-            customGauge.Labels(pushgatewayGaugeData.ResourceName, evt.TimestampUtc.ToString()).Set(gaugeValue);
+            var pushgatewayCounterData = ApplicationNameKeyValueMapping(evt, gaugeLabelValuesList);
+            var counter = Metrics.CreateCounter(CounterName, "To keep the count of no of times a particular error coming in a module.", new[] { "ApplicationName", "Message" });
+            counter.Labels(pushgatewayCounterData.ResourceName).Inc();
         }
 
         public static PushgatewayGaugeData ApplicationNameKeyValueMapping(Event<LogEventData> evt, List<string> gaugeLabelValuesList)

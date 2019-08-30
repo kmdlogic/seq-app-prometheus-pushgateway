@@ -6,8 +6,7 @@ A Seq app that pushes events to [Prometheus Pushgateway](https://github.com/prom
 
 The app is published to NuGet as [_Seq.App.Prometheus.Pushgateway_](https://nuget.org/packages/Seq.App.Prometheus.Pushgateway). Follow the instructions for [installing a Seq App](https://docs.getseq.net/docs/installing-seq-apps) and start an instance of the app, providing your details.
 * Based on the signals we select for the events Seq will send those events to SeqApp.
-* SeqApp will send Prometheus counters for those events to the PushgatewayUrl.
-* Data from filtered events are sent through gauge to the Pushgateway
+* SeqApp will send data through gauge to the Pushgateway
 
 ## Procedure :
 * SeqApps are implemented in .Net class library
@@ -38,5 +37,6 @@ The app is published to NuGet as [_Seq.App.Prometheus.Pushgateway_](https://nuge
  ```
  ## How to configure SeqApp :
  * To configure SeqApp go through this [Link]( https://docs.getseq.net/docs/installing-seq-apps)
+ * Fill in the details `Pushgateway URL`, `Pushgateway Gauge Name`, `Pushgateway Gauge Label Key`, `Pushgateway Gague Label Values`
 
 
