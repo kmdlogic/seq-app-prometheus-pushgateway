@@ -57,11 +57,11 @@ namespace Seq.App.Prometheus.Pushgateway
             counter.Labels(pushgatewayCounterData.ResourceName, evt.TimestampUtc.ToString()); 
         }
 
-        public static PushgatewayGaugeData ApplicationNameKeyValueMapping(Event<LogEventData> evt, List<string> gaugeLabelValuesList)
+        public static PushgatewayCounterData ApplicationNameKeyValueMapping(Event<LogEventData> evt, List<string> gaugeLabelValuesList)
         {
             var properties = (IDictionary<string, object>)ToDynamic(evt.Data.Properties ?? new Dictionary<string, object>());
 
-            PushgatewayGaugeData data = new PushgatewayGaugeData();
+            PushgatewayCounterData data = new PushgatewayCounterData();
             data.ResourceName = "ResourceNotFound";
 
             foreach (var propertyName in gaugeLabelValuesList)
