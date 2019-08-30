@@ -37,14 +37,6 @@ The app is published to NuGet as [_Seq.App.Prometheus.Pushgateway_](https://nuge
         }
  ```
  ## How to configure SeqApp :
- * Go to Seq
- * click `settings` and then click on `Apps`
- * click on `INSTALL FROM NUGET` and fill the details `Package id`, `version` and click on `INSTALL`
- * click on `ADD INSTANCE`
- * Fill the details `Title` 
- * Check the box `Stream incoming events` to send events and select the signal
- * Fill in the details `Pushgateway URL`, `Pushgateway Gauge Name`, `Pushgateway Gauge Label Key`, `Pushgateway Gague Label Values`
- * click on `SAVE CHANGES`
- 
+ * To configure SeqApp go through this [Link]( https://docs.getseq.net/docs/installing-seq-apps)
 
 
