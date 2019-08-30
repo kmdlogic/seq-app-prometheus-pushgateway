@@ -40,13 +40,12 @@ namespace Seq.App.Prometheus.Pushgateway
 
         public IMetricPushServer server;
         public ICollectorRegistry registry;
+        public readonly string instanceName = "default";
 
         protected override void OnAttached()
         {
             base.OnAttached();
-            registry = new CollectorRegistry();
-            var customPusher = new MetricPusher(registry, PushgatewayUrl, CounterName, new Uri(PushgatewayUrl).Host, null, null);
-            server = new MetricPushServer(customPusher);
+            server = new MetricPushServer(new MetricPusher(PushgatewayUrl, CounterName, instanceName));
             server.Start();
         }
 
