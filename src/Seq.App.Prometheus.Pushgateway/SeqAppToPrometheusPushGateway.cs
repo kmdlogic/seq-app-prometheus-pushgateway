@@ -52,9 +52,8 @@ namespace Seq.App.Prometheus.Pushgateway
         {
             var gaugeLabelValuesList = SplitOnNewLine(this.GaugeLabelValues).ToList();
             var pushgatewayCounterData = ApplicationNameKeyValueMapping(evt, gaugeLabelValuesList);
-            var gaugeValue = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
             var counter = Metrics.CreateCounter(CounterName, "To keep the count of no of times a particular error coming in a module.", new[] { GaugeLabelKey, "EventTimestamp" });
-            counter.Labels(pushgatewayCounterData.ResourceName, evt.TimestampUtc.ToString()); 
+            counter.Labels(pushgatewayCounterData.ResourceName).Inc();
         }
 
         public static PushgatewayCounterData ApplicationNameKeyValueMapping(Event<LogEventData> evt, List<string> gaugeLabelValuesList)
