@@ -28,11 +28,15 @@ namespace Seq.App.Prometheus.Pushgateway
         public string CounterName { get; set; }
 
         [SeqAppSetting(
-           DisplayName = "ApplicationNameKeyList",
-           
-           HelpText = "The names of additional event properties.",
+           DisplayName = "Pushgateway Gauge Label Key",
+           HelpText = "Pushgateway Gauge Label Key against which values from GaugeLabelValues will be set")]
+        public string GaugeLabelKey { get; set; }
+
+        [SeqAppSetting(
+            DisplayName = "Pushgateway Gague Label Values",
+            HelpText = "Gauge Label values to be tracked",
             InputType = SettingInputType.LongText)]
-        public string ApplicationNameKeySet { get; set; }
+        public string GaugeLabelValues { get; set; }
 
 
 
@@ -49,23 +53,24 @@ namespace Seq.App.Prometheus.Pushgateway
 
         public void On(Event<LogEventData> evt)
         {
-            var additionalPropertiesList = SplitOnNewLine(this.ApplicationNameKeySet).ToList();
-            var pushgatewayCounterData = ApplicationNameKeyValueMapping(evt, additionalPropertiesList);
+            var gaugeLabelValuesList = SplitOnNewLine(this.GaugeLabelValues).ToList();
+            var pushgatewayCounterData = ApplicationNameKeyValueMapping(evt, gaugeLabelValuesList);
 
 
-            var counter = Metrics.CreateCounter(CounterName, "To keep the count of no of times a particular error coming in a module.", new[] { "ApplicationName" });
-            counter.Labels(pushgatewayCounterData.ResourceName).Inc();
+            var counter = Metrics.CreateCounter(CounterName, "To keep the count of no of times a particular error coming in a module.", new[] { GaugeLabelKey });
+            counter.Labels(pushgatewayCounterData.ResourceName, GaugeLabelValues).Inc();
+            
 
         }
 
-        public static pushgatewayCounterData ApplicationNameKeyValueMapping(Event<LogEventData> evt, List<string> applicationNameKeyList)
+        public static pushgatewayCounterData ApplicationNameKeyValueMapping(Event<LogEventData> evt, List<string> gaugeLabelValuesList)
         {
             var properties = (IDictionary<string, object>)ToDynamic(evt.Data.Properties ?? new Dictionary<string, object>());
 
             pushgatewayCounterData data = new pushgatewayCounterData();
             data.ResourceName = "ResourceNotFound";
 
-            foreach (var propertyName in applicationNameKeyList)
+            foreach (var propertyName in gaugeLabelValuesList)
             {
                 var name = (propertyName).ToString().Trim();
                 foreach (var property in properties)
