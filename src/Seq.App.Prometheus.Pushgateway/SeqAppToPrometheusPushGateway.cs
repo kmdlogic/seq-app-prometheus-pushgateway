@@ -59,7 +59,7 @@ namespace Seq.App.Prometheus.Pushgateway
 
             var counter = Metrics.CreateCounter(CounterName, "To keep the count of no of times a particular error coming in a module.");
             counter.Inc();
-            
+            counter.Reset();
 
         }
 
