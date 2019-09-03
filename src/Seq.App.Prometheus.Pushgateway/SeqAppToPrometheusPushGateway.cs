@@ -23,45 +23,52 @@ namespace Seq.App.Prometheus.Pushgateway
         public string PushgatewayUrl { get; set; }
 
         [SeqAppSetting(
-            DisplayName = "Pushgateway Counter Name",
-            HelpText = "Name of the counter with which this will be identified in the Pushgateway Metrics.")]
-        public string CounterName { get; set; }
+             DisplayName = "Pushgateway Gauge Name",
+             HelpText = "Name of the Gauge with which this will be identified in the Pushgateway Metrics.")]
+        public string GaugeName { get; set; }
 
         [SeqAppSetting(
-            DisplayName = "ApplicationNameKeyList",
-            HelpText = "The names of additional event properties.",
+            DisplayName = "Pushgateway Gauge Label Key",
+            HelpText = "Pushgateway Gauge Label Key against which values from GaugeLabelValues will be set")]
+        public string GaugeLabelKey { get; set; }
+
+        [SeqAppSetting(
+            DisplayName = "Pushgateway Gague Label Values",
+            HelpText = "Gauge Label values to be tracked",
             InputType = SettingInputType.LongText)]
-        public string ApplicationNameKeySet { get; set; }
+        public string GaugeLabelValues { get; set; }
 
         public IMetricPushServer server;
-       
-        public readonly string instanceName = "default";
+        public ICollectorRegistry registry;
 
         protected override void OnAttached()
         {
             base.OnAttached();
-            server = new MetricPushServer(new MetricPusher(PushgatewayUrl, CounterName, instanceName));
+            registry = new CollectorRegistry();
+            var customPusher = new MetricPusher(registry, PushgatewayUrl, GaugeName, new Uri(PushgatewayUrl).Host, null, null);
+            server = new MetricPushServer(customPusher);
             server.Start();
         }
 
         public void On(Event<LogEventData> evt)
         {
-            var additionalPropertiesList = SplitOnNewLine(this.ApplicationNameKeySet).ToList();
-            var pushgatewayCounterData = FormatTemplate(evt, additionalPropertiesList);
+            var gaugeLabelValuesList = SplitOnNewLine(this.GaugeLabelValues).ToList();
+            var pushgatewayGaugeData = ApplicationNameKeyValueMapping(evt, gaugeLabelValuesList);
 
-            var counter = Metrics.CreateCounter(CounterName, "To keep the count of no of times a particular error coming in a module.", new[] { "ApplicationName", "Message" });
-            counter.Labels(pushgatewayCounterData.ResourceName).Inc();
+            var customGauge = Metrics.WithCustomRegistry(registry).CreateGauge(GaugeName, "To track the Seq events based on the applied signal", new[] { GaugeLabelKey, "EventTimestamp" });
+            var gaugeValue = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
+
+            customGauge.Labels(pushgatewayGaugeData.ResourceName, evt.TimestampUtc.ToString()).Set(gaugeValue);
         }
 
-
-        public static PushgatewayCounterData FormatTemplate(Event<LogEventData> evt, List<string> applicationNameKeyList)
+        public static pushgatewayGuageData ApplicationNameKeyValueMapping(Event<LogEventData> evt, List<string> gaugeLabelValuesList)
         {
             var properties = (IDictionary<string, object>)ToDynamic(evt.Data.Properties ?? new Dictionary<string, object>());
 
-            PushgatewayCounterData data = new PushgatewayCounterData();
-           
+            pushgatewayGuageData data = new pushgatewayGuageData();
+            data.ResourceName = "ResourceNotFound";
 
-            foreach (var propertyName in applicationNameKeyList)
+            foreach (var propertyName in gaugeLabelValuesList)
             {
                 var name = (propertyName).ToString().Trim();
                 foreach (var property in properties)
@@ -110,4 +117,3 @@ namespace Seq.App.Prometheus.Pushgateway
         }
     }
 }
-

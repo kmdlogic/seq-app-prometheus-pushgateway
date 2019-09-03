@@ -1,7 +1,7 @@
 
 namespace Seq.App.Prometheus.Pushgateway
 {
-    public class PushgatewayCounterData
+    public class pushgatewayGuageData
     {
         public string ResourceName { get; set; }
     }
