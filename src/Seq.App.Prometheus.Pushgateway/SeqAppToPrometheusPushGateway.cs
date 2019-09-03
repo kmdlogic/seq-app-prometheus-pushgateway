@@ -57,8 +57,8 @@ namespace Seq.App.Prometheus.Pushgateway
             var pushgatewayCounterData = ApplicationNameKeyValueMapping(evt, gaugeLabelValuesList);
 
 
-            var counter = Metrics.CreateCounter(CounterName, "To keep the count of no of times a particular error coming in a module.", new[] { GaugeLabelKey });
-            counter.Labels(pushgatewayCounterData.ResourceName, GaugeLabelValues).Inc();
+            var counter = Metrics.CreateCounter(CounterName, "To keep the count of no of times a particular error coming in a module.");
+            counter.Inc();
             
 
         }
