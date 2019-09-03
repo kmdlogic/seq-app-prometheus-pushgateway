@@ -23,9 +23,9 @@ namespace Seq.App.Prometheus.Pushgateway
         public string PushgatewayUrl { get; set; }
 
         [SeqAppSetting(
-             DisplayName = "Pushgateway Gauge Name",
+             DisplayName = "Pushgateway Counter Name",
              HelpText = "Name of the Gauge with which this will be identified in the Pushgateway Metrics.")]
-        public string GaugeName { get; set; }
+        public string CounterName { get; set; }
 
         [SeqAppSetting(
             DisplayName = "Pushgateway Gauge Label Key",
@@ -45,7 +45,7 @@ namespace Seq.App.Prometheus.Pushgateway
         {
             base.OnAttached();
             registry = new CollectorRegistry();
-            var customPusher = new MetricPusher(registry, PushgatewayUrl, GaugeName, new Uri(PushgatewayUrl).Host, null, null);
+            var customPusher = new MetricPusher(registry, PushgatewayUrl, CounterName, new Uri(PushgatewayUrl).Host, null, null);
             server = new MetricPushServer(customPusher);
             server.Start();
         }
@@ -55,17 +55,16 @@ namespace Seq.App.Prometheus.Pushgateway
             var gaugeLabelValuesList = SplitOnNewLine(this.GaugeLabelValues).ToList();
             var pushgatewayGaugeData = ApplicationNameKeyValueMapping(evt, gaugeLabelValuesList);
 
-            var customGauge = Metrics.WithCustomRegistry(registry).CreateGauge(GaugeName, "To track the Seq events based on the applied signal", new[] { GaugeLabelKey, "EventTimestamp" });
-            var gaugeValue = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
+            var counter = Metrics.CreateCounter(CounterName, "To keep the count of no of times a particular error coming in a module.", new[] { GaugeLabelKey });
+            counter.Labels(pushgatewayGaugeData.ResourceName).Inc();
 
-            customGauge.Labels(pushgatewayGaugeData.ResourceName, evt.TimestampUtc.ToString()).Set(gaugeValue);
         }
 
-        public static pushgatewayGuageData ApplicationNameKeyValueMapping(Event<LogEventData> evt, List<string> gaugeLabelValuesList)
+        public static pushgatewayCounterData ApplicationNameKeyValueMapping(Event<LogEventData> evt, List<string> gaugeLabelValuesList)
         {
             var properties = (IDictionary<string, object>)ToDynamic(evt.Data.Properties ?? new Dictionary<string, object>());
 
-            pushgatewayGuageData data = new pushgatewayGuageData();
+            pushgatewayCounterData data = new pushgatewayCounterData();
             data.ResourceName = "ResourceNotFound";
 
             foreach (var propertyName in gaugeLabelValuesList)
