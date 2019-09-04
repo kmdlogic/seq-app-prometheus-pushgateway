@@ -14,7 +14,7 @@ using System.Text;
 namespace Seq.App.Prometheus.Pushgateway
 {
     [SeqApp("Seq.App.Prometheus.Pushgateway",
-       Description = "\"GaugeLabelKey\" data from filtered events are sent through gauge to the Pushgateway.")]
+       Description = "\"CounterLabelKey\" data from filtered events are sent through Prometheus counters to the Pushgateway.")]
     public class SeqAppToPrometheusPushGateway : SeqApp, ISubscribeTo<LogEventData>
     {
         [SeqAppSetting(
@@ -24,19 +24,19 @@ namespace Seq.App.Prometheus.Pushgateway
 
         [SeqAppSetting(
              DisplayName = "Pushgateway Counter Name",
-             HelpText = "Name of the Gauge with which this will be identified in the Pushgateway Metrics.")]
+             HelpText = "Name of the Counter with which this will be identified in the Pushgateway Metrics.")]
         public string CounterName { get; set; }
 
         [SeqAppSetting(
-           DisplayName = "Pushgateway Gauge Label Key",
-           HelpText = "Pushgateway Gauge Label Key against which values from GaugeLabelValues will be set")]
-        public string GaugeLabelKey { get; set; }
+           DisplayName = "Pushgateway Counter Label Key",
+           HelpText = "Pushgateway Counter Label Key against which values from CounterLabelValues will be set")]
+        public string CounterLabelKey { get; set; }
 
         [SeqAppSetting(
-            DisplayName = "Pushgateway Gague Label Values",
-            HelpText = "Gauge Label values to be tracked",
+            DisplayName = "Pushgateway Counter Label Values",
+            HelpText = "Counter Label values to be tracked",
             InputType = SettingInputType.LongText)]
-        public string GaugeLabelValues { get; set; }
+        public string CounterLabelValues { get; set; }
 
 
 
@@ -53,24 +53,21 @@ namespace Seq.App.Prometheus.Pushgateway
 
         public void On(Event<LogEventData> evt)
         {
-            var gaugeLabelValuesList = SplitOnNewLine(this.GaugeLabelValues).ToList();
-            var pushgatewayCounterData = ApplicationNameKeyValueMapping(evt, gaugeLabelValuesList);
-
+            var counterLabelValuesList = SplitOnNewLine(this.CounterLabelValues).ToList();
+            var pushgatewayCounterData = ApplicationNameKeyValueMapping(evt, counterLabelValuesList);
 
             var counter = Metrics.CreateCounter(CounterName, "To keep the count of no of times a particular error coming in a module.");
             counter.Inc();
-            counter.Reset();
-
         }
 
-        public static pushgatewayCounterData ApplicationNameKeyValueMapping(Event<LogEventData> evt, List<string> gaugeLabelValuesList)
+        public static pushgatewayCounterData ApplicationNameKeyValueMapping(Event<LogEventData> evt, List<string> counterLabelValuesList)
         {
             var properties = (IDictionary<string, object>)ToDynamic(evt.Data.Properties ?? new Dictionary<string, object>());
 
             pushgatewayCounterData data = new pushgatewayCounterData();
             data.ResourceName = "ResourceNotFound";
 
-            foreach (var propertyName in gaugeLabelValuesList)
+            foreach (var propertyName in counterLabelValuesList)
             {
                 var name = (propertyName).ToString().Trim();
                 foreach (var property in properties)

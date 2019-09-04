@@ -6,7 +6,7 @@ A Seq app that pushes events to [Prometheus Pushgateway](https://github.com/prom
 
 The app is published to NuGet as [_Seq.App.Prometheus.Pushgateway_](https://nuget.org/packages/Seq.App.Prometheus.Pushgateway). Follow the instructions for [installing a Seq App](https://docs.getseq.net/docs/installing-seq-apps) and start an instance of the app, providing your details.
 * Based on the signals we select for the events Seq will send those events to SeqApp.
-* SeqApp will send data through gauge to the Pushgateway
+* SeqApp will send Prometheus counters for those events to the PushgatewayUrl.
 
 ## Procedure :
 * SeqApps are implemented in .Net class library
@@ -26,17 +26,15 @@ The app is published to NuGet as [_Seq.App.Prometheus.Pushgateway_](https://nuge
 ```query
    public void On(Event<LogEventData> evt)
         {
-            var gaugeLabelValuesList = SplitOnNewLine(this.GaugeLabelValues).ToList();
-            var pushgatewayGaugeData = ApplicationNameKeyValueMapping(evt, gaugeLabelValuesList);
+            var counterLabelValuesList = SplitOnNewLine(this.CounterLabelValues).ToList();
+            var pushgatewayCounterData = ApplicationNameKeyValueMapping(evt, counterLabelValuesList);
 
-            var customGauge = Metrics.WithCustomRegistry(registry).CreateGauge(GaugeName, "To track the Seq events based on the applied signal", new[] { GaugeLabelKey, "EventTimestamp" });
-            var gaugeValue = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
-         
-            customGauge.Labels(pushgatewayGaugeData.ResourceName, evt.TimestampUtc.ToString()).Set(gaugeValue);
+            var counter = Metrics.CreateCounter(CounterName, "To keep the count of no of times a particular error coming in a module.");
+            counter.Inc();
         }
  ```
  ## How to configure SeqApp :
  * To configure SeqApp go through this [Link]( https://docs.getseq.net/docs/installing-seq-apps)
- * Fill in the details `Pushgateway URL`, `Pushgateway Gauge Name`, `Pushgateway Gauge Label Key`, `Pushgateway Gague Label Values`
+ * Fill in the details `Pushgateway URL`, `Pushgateway Counter Name`, `Pushgateway Counter Label Key`, `Pushgateway Counter Label Values`
 
 
