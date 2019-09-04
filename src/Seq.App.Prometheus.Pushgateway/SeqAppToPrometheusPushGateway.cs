@@ -27,17 +27,7 @@ namespace Seq.App.Prometheus.Pushgateway
              HelpText = "Name of the Counter with which this will be identified in the Pushgateway Metrics.")]
         public string CounterName { get; set; }
 
-        [SeqAppSetting(
-           DisplayName = "Pushgateway Counter Label Key",
-           HelpText = "Pushgateway Counter Label Key against which values from CounterLabelValues will be set")]
-        public string CounterLabelKey { get; set; }
-
-        [SeqAppSetting(
-            DisplayName = "Pushgateway Counter Label Values",
-            HelpText = "Counter Label values to be tracked",
-            InputType = SettingInputType.LongText)]
-        public string CounterLabelValues { get; set; }
-
+       
 
 
         public IMetricPushServer server;
@@ -53,34 +43,24 @@ namespace Seq.App.Prometheus.Pushgateway
 
         public void On(Event<LogEventData> evt)
         {
-            var counterLabelValuesList = SplitOnNewLine(this.CounterLabelValues).ToList();
-            var pushgatewayCounterData = ApplicationNameKeyValueMapping(evt, counterLabelValuesList);
+           
+            var pushgatewayCounterData = ApplicationNameKeyValueMapping(evt);
 
             var counter = Metrics.CreateCounter(CounterName, "To keep the count of no of times a particular error coming in a module.");
             counter.Inc();
         }
 
-        public static pushgatewayCounterData ApplicationNameKeyValueMapping(Event<LogEventData> evt, List<string> counterLabelValuesList)
+        public static pushgatewayCounterData ApplicationNameKeyValueMapping(Event<LogEventData> evt)
         {
             var properties = (IDictionary<string, object>)ToDynamic(evt.Data.Properties ?? new Dictionary<string, object>());
 
             pushgatewayCounterData data = new pushgatewayCounterData();
             data.ResourceName = "ResourceNotFound";
 
-            foreach (var propertyName in counterLabelValuesList)
-            {
-                var name = (propertyName).ToString().Trim();
-                foreach (var property in properties)
-                {
-                    if (property.Key == name)
-                    {
-                        data.ResourceName = property.Value.ToString();
-                        break;
-                    }
-                }
-            }
+           
             return data;
         }
+
 
         private static object ToDynamic(object o)
         {
