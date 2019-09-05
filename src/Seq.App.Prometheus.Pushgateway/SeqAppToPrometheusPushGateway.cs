@@ -27,11 +27,7 @@ namespace Seq.App.Prometheus.Pushgateway
              HelpText = "Name of the Counter with which this will be identified in the Pushgateway Metrics.")]
         public string CounterName { get; set; }
 
-       
-
-
         public IMetricPushServer server;
-        public ICollectorRegistry registry;
         public readonly string instanceName = "default";
 
         protected override void OnAttached()
@@ -43,56 +39,9 @@ namespace Seq.App.Prometheus.Pushgateway
 
         public void On(Event<LogEventData> evt)
         {
-           
-            var pushgatewayCounterData = ApplicationNameKeyValueMapping(evt);
-
             var counter = Metrics.CreateCounter(CounterName, "To keep the count of no of times a particular error coming in a module.");
             counter.Inc();
-        }
-
-        public static pushgatewayCounterData ApplicationNameKeyValueMapping(Event<LogEventData> evt)
-        {
-            var properties = (IDictionary<string, object>)ToDynamic(evt.Data.Properties ?? new Dictionary<string, object>());
-
-            pushgatewayCounterData data = new pushgatewayCounterData();
-            data.ResourceName = "ResourceNotFound";
-
-           
-            return data;
-        }
-
-
-        private static object ToDynamic(object o)
-        {
-            switch (o)
-            {
-                case IEnumerable<KeyValuePair<string, object>> dictionary:
-                    var result = new ExpandoObject();
-                    var asDict = (IDictionary<string, object>)result;
-                    foreach (var kvp in dictionary)
-                    {
-                        asDict.Add(kvp.Key, ToDynamic(kvp.Value));
-                    }
-                    return result;
-
-                case IEnumerable<object> enumerable:
-                    return enumerable.Select(ToDynamic).ToArray();
-            }
-
-            return o;
-        }
-
-        private static IEnumerable<string> SplitOnNewLine(string addtionalProperties)
-        {
-            if (addtionalProperties == null)
-            {
-                yield break;
-            }
-
-            using (var reader = new StringReader(addtionalProperties))
-            {
-                yield return reader.ReadLine();
-            }
+            counter.Reset();
         }
     }
 }
