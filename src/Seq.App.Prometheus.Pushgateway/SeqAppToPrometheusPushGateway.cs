@@ -41,7 +41,7 @@ namespace Seq.App.Prometheus.Pushgateway
 
         public void On(Event<LogEventData> evt)
         {
-            var counter = Metrics.CreateCounter(CounterName, "To keep the count of no of times a particular error coming in a module.");
+            var counter = Metrics.CreateCounter(CounterName, "To keep the count of no of times a particular error coming in a module.", new[] { "data" });
 
 
 
@@ -58,12 +58,17 @@ namespace Seq.App.Prometheus.Pushgateway
                                 .Accept
                                 .Add(new MediaTypeWithQualityHeaderValue("application/json"));
                 var resultApi = client.SendAsync(request).GetAwaiter().GetResult();
+                var response = resultApi.Content.ReadAsStringAsync().GetAwaiter().GetResult();
+
+
+
+
+                counter.Reset();
+                counter.WithLabels(response).Inc();
             }
 
+        }
 
 
-            counter.Reset();
-            counter.Inc();
         }
     }
-}
