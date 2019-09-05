@@ -49,7 +49,7 @@ namespace Seq.App.Prometheus.Pushgateway
             {
                 //client.BaseAddress = new Uri();
                 var method = new HttpMethod("DELETE");
-                var requestUri = $"http://{PushgatewayUrl}/metrics/job/{CounterName}/instance/{instanceName}";
+                var requestUri = $"{PushgatewayUrl}metrics/job/{CounterName}/instance/{instanceName}";
                 var request = new HttpRequestMessage(method, requestUri);
 
 
