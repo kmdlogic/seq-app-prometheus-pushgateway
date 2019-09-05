@@ -3,6 +3,8 @@ using Prometheus.Client.MetricPusher;
 using Seq.Apps;
 using Seq.Apps.LogEvents;
 using System;
+using System.Net.Http;
+using System.Net.Http.Headers;
 using System.Collections.Generic;
 using Prometheus.Client.Collectors;
 using Prometheus.Client.Collectors.Abstractions;
@@ -40,7 +42,28 @@ namespace Seq.App.Prometheus.Pushgateway
         public void On(Event<LogEventData> evt)
         {
             var counter = Metrics.CreateCounter(CounterName, "To keep the count of no of times a particular error coming in a module.");
-           counter.Inc();            
+
+
+
+            using (HttpClient client = new HttpClient())
+            {
+                //client.BaseAddress = new Uri();
+                var method = new HttpMethod("DELETE");
+                var requestUri = $"http://{PushgatewayUrl}/metrics/job/{CounterName}/instance/{instanceName}";
+                var request = new HttpRequestMessage(method, requestUri);
+
+
+
+                request.Headers
+                                .Accept
+                                .Add(new MediaTypeWithQualityHeaderValue("application/json"));
+                var resultApi = client.SendAsync(request).GetAwaiter().GetResult();
+            }
+
+
+
+            counter.Reset();
+            counter.Inc();
         }
     }
 }
