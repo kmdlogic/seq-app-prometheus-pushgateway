@@ -31,44 +31,49 @@ namespace Seq.App.Prometheus.Pushgateway
 
         public IMetricPushServer server;
         public readonly string instanceName = "default";
+        public Counter counter;
 
         protected override void OnAttached()
         {
             base.OnAttached();
             server = new MetricPushServer(new MetricPusher(PushgatewayUrl, CounterName, instanceName));
             server.Start();
+            counter = Metrics.CreateCounter(CounterName, "To keep the count of no of times a particular error coming in a module.", new[] { "data" });
+
+
+
         }
+
+
 
         public void On(Event<LogEventData> evt)
         {
-            var counter = Metrics.CreateCounter(CounterName, "To keep the count of no of times a particular error coming in a module.", new[] { "data" });
+
+            //using (HttpClient client = new HttpClient())
+            //{
+            //    //client.BaseAddress = new Uri();
+            //    var method = new HttpMethod("DELETE");
+            //    var requestUri = $"{PushgatewayUrl}metrics/job/{CounterName}/instance/{instanceName}";
+            //    var request = new HttpRequestMessage(method, requestUri);
 
 
 
-            using (HttpClient client = new HttpClient())
-            {
-                //client.BaseAddress = new Uri();
-                var method = new HttpMethod("DELETE");
-                var requestUri = $"{PushgatewayUrl}metrics/job/{CounterName}/instance/{instanceName}";
-                var request = new HttpRequestMessage(method, requestUri);
-
-
-
-                request.Headers
-                                .Accept
-                                .Add(new MediaTypeWithQualityHeaderValue("application/json"));
-                var resultApi = client.SendAsync(request).GetAwaiter().GetResult();
-                var response = resultApi.Content.ReadAsStringAsync().GetAwaiter().GetResult();
+            //    request.Headers
+            //                    .Accept
+            //                    .Add(new MediaTypeWithQualityHeaderValue("application/json"));
+            //    var resultApi = client.SendAsync(request).GetAwaiter().GetResult();
+            //    var response = resultApi.Content.ReadAsStringAsync().GetAwaiter().GetResult();
 
 
 
 
-                counter.Reset();
-                counter.WithLabels(response).Inc();
-            }
+            //    counter.Reset();
+            //    counter.Inc();
+            //}
+            counter.Inc();
 
-        }
 
 
         }
     }
+}
