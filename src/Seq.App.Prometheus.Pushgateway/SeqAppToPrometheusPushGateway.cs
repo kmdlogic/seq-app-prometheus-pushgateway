@@ -49,28 +49,28 @@ namespace Seq.App.Prometheus.Pushgateway
         public void On(Event<LogEventData> evt)
         {
 
-            //using (HttpClient client = new HttpClient())
-            //{
-            //    //client.BaseAddress = new Uri();
-            //    var method = new HttpMethod("DELETE");
-            //    var requestUri = $"{PushgatewayUrl}metrics/job/{CounterName}/instance/{instanceName}";
-            //    var request = new HttpRequestMessage(method, requestUri);
+            using (HttpClient client = new HttpClient())
+            {
+                //client.BaseAddress = new Uri();
+                var method = new HttpMethod("POST");
+                var requestUri = $"{PushgatewayUrl}metrics/job/{CounterName}/instance/{instanceName}/0";
+                var request = new HttpRequestMessage(method, requestUri);
 
 
 
-            //    request.Headers
-            //                    .Accept
-            //                    .Add(new MediaTypeWithQualityHeaderValue("application/json"));
-            //    var resultApi = client.SendAsync(request).GetAwaiter().GetResult();
-            //    var response = resultApi.Content.ReadAsStringAsync().GetAwaiter().GetResult();
+                request.Headers
+                                .Accept
+                                .Add(new MediaTypeWithQualityHeaderValue("application/json"));
+                var resultApi = client.SendAsync(request).GetAwaiter().GetResult();
+                var response = resultApi.Content.ReadAsStringAsync().GetAwaiter().GetResult();
 
 
 
 
-            //    counter.Reset();
-            //    counter.Inc();
-            //}
-            counter.Inc();
+                //counter.Reset();
+                counter.Inc();
+            }
+            // counter.Inc();
 
 
 
